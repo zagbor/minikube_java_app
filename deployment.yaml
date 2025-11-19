@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: proj-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: proj-app
+  template:
+    metadata:
+      labels:
+        app: proj-app
+      annotations:
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+    spec:
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+        runAsNonRoot: true
+      containers:
+        - name: proj-app
+          image: proj-app:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: APP_JAVA_OPTS
+              value: "-Xms256m -Xmx512m"
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /health
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /health
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          volumeMounts:
+            - name: workdir
+              mountPath: /tmp
+      volumes:
+        - name: workdir
+          emptyDir: {}
