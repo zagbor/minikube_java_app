@@ -1,5 +1,4 @@
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
@@ -14,64 +13,55 @@ public class ToneAnalysisServer {
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
 
         // Обработчик анализа текста
-        server.createContext("/text-tone", new TextToneHandler());
+        server.createContext("/text-tone", ToneAnalysisServer::handleTextTone);
 
         // Проверка живости сервиса
-        server.createContext("/health", new HealthHandler());
+        server.createContext("/health", ToneAnalysisServer::handleHealth);
 
         // Метрики в формате, совместимом с Prometheus
-        server.createContext("/metrics", new MetricsHandler());
+        server.createContext("/metrics", ToneAnalysisServer::handleMetrics);
 
         server.setExecutor(null); // стандартный executor
         server.start();
     }
 
-    // --------- Handlers ---------
+    // --------- Handlers (как методы, без отдельных классов) ---------
 
-    static class TextToneHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            try {
-                String body = readRequestBody(exchange);
-                String text = extractJsonField(body, "text");
+    private static void handleTextTone(HttpExchange exchange) throws IOException {
+        try {
+            String body = readRequestBody(exchange);
+            String text = extractJsonField(body, "text");
 
-                if (text == null || text.isEmpty()) {
-                    text = "no_text";
-                }
-
-                String jsonResponse = String.format(
-                        "{\"received_text\": \"%s\", \"mood\": \"happy\", \"score\": 0.95}",
-                        escapeForJson(text)
-                );
-
-                sendJson(exchange, 200, jsonResponse);
-            } catch (Exception e) {
-                String errorResponse = "{\"error\": \"bad_request\", \"mood\": \"neutral\", \"score\": 0.5}";
-                sendJson(exchange, 400, errorResponse);
+            if (text == null || text.isEmpty()) {
+                text = "no_text";
             }
-        }
-    }
 
-    static class HealthHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            String jsonResponse = "{\"status\": \"OK\"}";
+            String jsonResponse = String.format(
+                    "{\"received_text\": \"%s\", \"mood\": \"happy\", \"score\": 0.95}",
+                    escapeForJson(text)
+            );
+
             sendJson(exchange, 200, jsonResponse);
+        } catch (Exception e) {
+            String errorResponse = "{\"error\": \"bad_request\", \"mood\": \"neutral\", \"score\": 0.5}";
+            sendJson(exchange, 400, errorResponse);
         }
     }
 
-    static class MetricsHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            long usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+    private static void handleHealth(HttpExchange exchange) throws IOException {
+        String jsonResponse = "{\"status\": \"OK\"}";
+        sendJson(exchange, 200, jsonResponse);
+    }
 
-            StringBuilder sb = new StringBuilder();
-            sb.append("# HELP memory_usage_bytes Memory usage\n");
-            sb.append("# TYPE memory_usage_bytes gauge\n");
-            sb.append("memory_usage_bytes ").append(usedMemory).append("\n");
+    private static void handleMetrics(HttpExchange exchange) throws IOException {
+        long usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 
-            sendText(exchange, 200, sb.toString(), "text/plain");
-        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("# HELP memory_usage_bytes Memory usage\n");
+        sb.append("# TYPE memory_usage_bytes gauge\n");
+        sb.append("memory_usage_bytes ").append(usedMemory).append("\n");
+
+        sendText(exchange, 200, sb.toString(), "text/plain");
     }
 
     // --------- Utils ---------
