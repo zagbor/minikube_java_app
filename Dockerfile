@@ -24,4 +24,4 @@ COPY --from=builder /workspace/ToneAnalysisServer.class .
 
 ENV PATH="/opt/custom-jre/bin:${PATH}"
 
-CMD ["java", "Example"]
+CMD ["java", "ToneAnalysisServer"]
