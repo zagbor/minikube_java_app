@@ -22,7 +22,7 @@ spec:
         runAsNonRoot: true
       containers:
         - name: minikube-java-app
-          image: minikube-java-app:latest
+          image: minikube_java_app:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8080
