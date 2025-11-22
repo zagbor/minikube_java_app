@@ -6,7 +6,7 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: minikube_java_app-app
+    name: minikube-java-app
   minReplicas: 1
   maxReplicas: 5
   metrics:

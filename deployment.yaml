@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: minikube_java_app-app
+  name: minikube-java-app
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: minikube_java_app-app
+      app: minikube-java-app
   template:
     metadata:
       labels:
-        app: minikube_java_app-app
+        app: minikube-java-app
       annotations:
         prometheus.io/path: "/metrics"
         prometheus.io/port: "8080"
@@ -21,8 +21,8 @@ spec:
         runAsUser: 1000
         runAsNonRoot: true
       containers:
-        - name: minikube_java_app
-          image: minikube_java_app:latest
+        - name: minikube-java-app
+          image: minikube-java-app:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8080
