@@ -40,10 +40,10 @@ curl http://localhost:8080/metrics
 3. Загрузка в Minikube
 ```bash
 # Загрузка образа
-minikube image load proj-app:latest
+minikube image load minikube_java_app-app:latest
 
 # Проверка
-minikube ssh docker images | grep proj-app
+minikube ssh docker images | grep proj-minikube_java_app
 ```
 4. Развертывание в Kubernetes
 ```bash
@@ -56,7 +56,7 @@ kubectl get deployments,pods,services,ingress,hpa
 5. Доступ к приложению
 ```bash
 # Проброс портов
-kubectl port-forward svc/proj-service 8080:80 --address 0.0.0.0
+kubectl port-forward svc/minikube_java_app-service 8080:80 --address 0.0.0.0
 ```
 6. Мониторинг
 ```bash
